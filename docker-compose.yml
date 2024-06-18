@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  generate_threats:
+    build:
+      context: .
+      dockerfile: Dockerfile.generate_threats
+    depends_on:
+      - capture_and_log
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      - TARGET_IP=capture_and_log  # Use the service name for internal Docker DNS resolution
+      - TARGET_PORT=80  # Replace with the target port if different
+      - PYTHONUNBUFFERED=1
+    networks:
+      - testnet
+
+  capture_and_log:
+    build:
+      context: .
+      dockerfile: Dockerfile.capture_and_log
+    environment:
+      - INTERFACE=eth0
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    devices:
+      - /dev/net/tun
+    networks:
+      - testnet
+    privileged: true
+
+networks:
+  testnet:
+    driver: bridge
