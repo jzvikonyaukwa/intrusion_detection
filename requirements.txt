@@ -1,4 +1,13 @@
-scapy
+
+Flask
+flask-socketio
+python-socketio
+Werkzeug
 pyshark
 numpy
 pandas
+joblib
+xgboost
+scikit-learn
+scapy
+imbalanced-learn

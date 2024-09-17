@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.generate_threats
-    depends_on:
-      - capture_and_log
+    volumes:
+      - .:/app
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -23,6 +23,8 @@ services:
       dockerfile: Dockerfile.capture_and_log
     environment:
       - INTERFACE=eth0
+    volumes:
+      - .:/app
     cap_add:
       - NET_ADMIN
       - NET_RAW
@@ -31,6 +33,8 @@ services:
     networks:
       - testnet
     privileged: true
+    ports:
+      - "5000:5001"
 
 networks:
   testnet:

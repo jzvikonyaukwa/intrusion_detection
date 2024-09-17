@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Overview{% endblock %}
+
+{% block content %}
+<header class="text-dark text-uppercase text-center py-2 mb-4 pt-3 shadow">
+    <h3 class="fw-bold ">Intrusion Detection Dashboard</h3>
+</header>
+
+<div class="row g-0 mb-4">
+    <div class="col-md-4">
+        <div class="card text-white h-100" style="color: #2980b9;">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-chart-bar fa-3x me-3" style="color: #2980b9;"></i>
+                <div class="text-center w-100">
+                    <h3 id="events-analyzed" style="color: #2980b9;" class="card-title mb-0">0</h3>
+                    <p class="card-text" style="color: #2980b9;">Events Analyzed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-dark me-3"></i>
+                <div class="text-center w-100">
+                    <h3 id="detected-threats" class="card-title mb-0 text-dark">0</h3>
+                    <p class="card-text text-dark">Detected Threats</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-danger text-white h-100">
+            <div class="card-body d-flex align-items-center">
+                <i class="fas fa-exclamation-circle fa-3x me-3"></i>
+                <div class="text-center w-100">
+                    <h3 id="priority-cases" class="card-title mb-0">0</h3>
+                    <p class="card-text text-white">Priority Cases</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-0">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h4>Active Alerts</h4>
+                <div class="table-responsive" style="max-height: 350px;">
+                    <table id="alerts-table" class="table table-striped">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Time</th>
+                                <th>Alert Type</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-table-body">
+                            <!-- Alerts will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body" style="max-height: 550px;">
+                <h4>Threats Frequency</h4>
+                <canvas id="threatChart" width="400" height="430"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h4>Real Time Traffic</h4>
+        <div class="table-responsive" style="max-height: 350px;">
+            <table id="packet-table" class="table table-striped">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Source IP</th>
+                        <th>Destination IP</th>
+                        <th>Protocol</th>
+                        <th>Destination Port</th>
+                        <th>Timestamp</th>
+                        <th>Flow Duration</th>
+                        <th>Attack Type</th>
+                    </tr>
+                </thead>
+                <tbody id="packet-table-body">
+                    <!-- Packet details will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", async (event) => {
+        console.log("Document loaded, initializing WebSocket...");
+
+        const response = await fetch('/alerts.json');
+        const initialAlerts = await response.json();
+
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        var ctx = document.getElementById('threatChart').getContext('2d');
+        var threatChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [], // Alert types will be added here
+                datasets: [{
+                    label: 'Threat Frequency',
+                    data: [], // Data will be added here
+                  backgroundColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)',
+                        'rgba(255, 99, 132, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            display: false
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        initialAlerts.forEach(alert => {
+            addAlertToTable(alert);
+            updateChart(alert);
+        });
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+
+        socket.on('update_data', function(msg) {
+            console.log('Received data:', msg);  // Log reception
+            var levelClass;
+            if (alert.level === "danger") {
+                levelClass = "bg-danger";
+            } else if (alert.level === "warning") {
+                levelClass = "bg-warning";
+            } else  {
+                levelClass="bg-info"
+            }
+            // Create a new row for the received packet details
+            var newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${msg.src_ip}</td>
+                <td>${msg.dst_ip}</td>
+                <td>${msg.protocol}</td>
+                <td>${msg.dst_port}</td>
+                <td>${msg.timestamp}</td>
+                <td>${msg.flow_duration}</td>
+                <td><span class="badge bg-${msg.alert_level}">${msg.attack_type}</span></td>
+            `;
+
+            // Append the new row to the table body
+            var tableBody = document.getElementById('packet-table-body');
+            tableBody.appendChild(newRow);
+        });
+
+        socket.on('update_alerts', function(alert) {
+            console.log('Received alert:', alert);  // Log reception
+            addAlertToTable(alert);
+            updateChart(alert);
+        });
+
+        socket.on('update_stats', function(stats) {
+            console.log('Received stats:', stats);  // Log reception
+
+            // Update the statistics cards
+            // The following lines update the counts in the cards
+            document.getElementById('events-analyzed').textContent = stats.events_analyzed;
+            document.getElementById('detected-threats').textContent = stats.detected_threats;
+            document.getElementById('priority-cases').textContent = stats.priority_cases;
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Disconnected from server');
+        });
+
+        function addAlertToTable(alert) {
+            if  (alert.level === "info") {
+                return;
+            } 
+
+            var newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td>${alert.time}</td>
+                <td><span class="badge bg-${alert.level} text-white">${alert.type}</span></td>
+                <td>${alert.description}</td>
+                <td>${alert.status}</td>
+            `;
+            var tableBody = document.getElementById('alerts-table-body');
+            tableBody.insertBefore(newRow, tableBody.firstChild);  // Insert at the top
+        }
+
+        // Update chart function
+        function updateChart(alert) {
+            const index = threatChart.data.labels.indexOf(alert.type);
+            if (index !== -1) {
+                threatChart.data.datasets[0].data[index] += 1;
+            } else {
+                threatChart.data.labels.push(alert.type);
+                threatChart.data.datasets[0].data.push(1);
+            }
+            threatChart.update();
+        }
+    });
+</script>
+{% endblock %}

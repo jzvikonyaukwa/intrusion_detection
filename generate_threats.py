@@ -179,21 +179,21 @@ def send_icmp_echo_request(target_ip):
         packet = IP(dst=target_ip) / ICMP()
         packet = add_custom_tag(packet)
         send(packet)
-        print(f"Sent ICMP Echo Request to {target_ip}")
+        # print(f"Sent ICMP Echo Request to {target_ip}")
 
 def send_tcp_syn(target_ip, target_port):
     if target_ip:
         packet = IP(dst=target_ip) / TCP(dport=target_port, flags="S")
         packet = add_custom_tag(packet)
         send(packet)
-        print(f"Sent TCP SYN to {target_ip}:{target_port}")
+        # print(f"Sent TCP SYN to {target_ip}:{target_port}")
 
 def send_udp_packet(target_ip, target_port, message):
     if target_ip:
         packet = IP(dst=target_ip) / UDP(dport=target_port) / Raw(load=message)
         packet = add_custom_tag(packet)
         send(packet)
-        print(f"Sent UDP packet to {target_ip}:{target_port} with message: {message}")
+        # print(f"Sent UDP packet to {target_ip}:{target_port} with message: {message}")
 
 # Bot attack simulation
 def simulate_bot_attack(target_ip, target_port, count=100):
@@ -202,7 +202,7 @@ def simulate_bot_attack(target_ip, target_port, count=100):
             packet = IP(dst=target_ip) / TCP(dport=target_port, flags="PA") / Raw(load="Botnet attack payload")
             packet = add_custom_tag(packet)
             send(packet, verbose=0)
-        print(f"Sent {count} Bot attack packets to {target_ip}:{target_port}")
+        # print(f"Sent {count} Bot attack packets to {target_ip}:{target_port}")
 
 # Brute Force attack simulation
 def simulate_brute_force_attack(target_ip, target_port, count=100):
@@ -212,7 +212,7 @@ def simulate_brute_force_attack(target_ip, target_port, count=100):
             packet = add_custom_tag(packet)
             send(packet, verbose=0)
             time.sleep(0.5)
-        print(f"Sent {count} Brute Force attack packets to {target_ip}:{target_port}")
+        # print(f"Sent {count} Brute Force attack packets to {target_ip}:{target_port}")
 
 # DDoS attack simulation
 def simulate_ddos_attack(target_ip, target_port, count=1000):
@@ -221,7 +221,7 @@ def simulate_ddos_attack(target_ip, target_port, count=1000):
             packet = IP(dst=target_ip) / UDP(dport=target_port) / Raw(load="DDoS Attack")
             packet = add_custom_tag(packet)
             send(packet, verbose=0)
-        print(f"Sent {count} DDoS attack packets to {target_ip}:{target_port}")
+        # print(f"Sent {count} DDoS attack packets to {target_ip}:{target_port}")
 
 # DoS attack simulation
 def simulate_dos_attack(target_ip, target_port, count=100):
@@ -231,7 +231,7 @@ def simulate_dos_attack(target_ip, target_port, count=100):
             packet = add_custom_tag(packet)
             send(packet, verbose=0)
             time.sleep(0.1)
-        print(f"Sent {count} DoS attack packets to {target_ip}:{target_port}")
+        # print(f"Sent {count} DoS attack packets to {target_ip}:{target_port}")
 
 # Infiltration attack simulation
 def simulate_infiltration_attack(target_ip, target_port, count=50):
@@ -241,7 +241,7 @@ def simulate_infiltration_attack(target_ip, target_port, count=50):
             packet = add_custom_tag(packet)
             send(packet, verbose=0)
             time.sleep(0.2)
-        print(f"Sent {count} Infiltration attack packets to {target_ip}:{target_port}")
+        # print(f"Sent {count} Infiltration attack packets to {target_ip}:{target_port}")
 
 # SQL Injection attack simulation
 def simulate_sql_injection_attack(target_ip):
@@ -250,7 +250,7 @@ def simulate_sql_injection_attack(target_ip):
         packet = IP(dst=target_ip) / TCP(dport=80) / Raw(load=payload)
         packet = add_custom_tag(packet)
         send(packet)
-        print(f"Sent SQL Injection payload to {target_ip}")
+        # print(f"Sent SQL Injection payload to {target_ip}")
 
 def main():
     hostname = os.getenv('TARGET_IP', 'capture_and_log')

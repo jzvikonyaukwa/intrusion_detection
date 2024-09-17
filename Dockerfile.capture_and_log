@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:3.9-slim
+FROM python:3.10.12-slim
 
 # Set the working directory in the container
 WORKDIR /app
@@ -10,10 +10,18 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-RUN pip install pyshark pandas numpy
+COPY requirements.txt .
+# Upgrade pip
+RUN pip install --upgrade pip
+
+# Install dependencies with retries and timeout
+RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt || \
+    pip install --no-cache-dir -i https://pypi.mirrors.ustc.edu.cn/simple -r requirements.txt || \
+    pip install --no-cache-dir -r requirements.txt
+
 
 # Copy traffic capture and logging script
-COPY capture_and_log.py .
+COPY . .
 
 # Run capture_and_log.py when the container launches
-CMD ["python", "capture_and_log.py"]
+CMD ["python", "app.py"]
